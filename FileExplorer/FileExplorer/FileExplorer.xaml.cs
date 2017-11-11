@@ -52,17 +52,17 @@
         /// </summary>
         public FileExplorer()
         {
-            this.InitializeComponent();
+            InitializeComponent();
 
             // on sélectionne le disque par défaut si non saisie
-            if (string.IsNullOrEmpty(this.DefaultDrive))
+            if (string.IsNullOrEmpty(DefaultDrive))
             {
-                this.DefaultDrive = Path.GetPathRoot(Assembly.GetExecutingAssembly().Location);
+                DefaultDrive = Path.GetPathRoot(Assembly.GetExecutingAssembly().Location);
             }
 
-            this.ListDirectory(this.TreeViewFolder, this.DefaultDrive);
+            ListDirectory(TreeViewFolder, DefaultDrive);
 
-            this.TreeViewFolder.SelectedItemChanged += this.TreeViewFolderOnSelectedItemChanged;
+            TreeViewFolder.SelectedItemChanged += TreeViewFolderOnSelectedItemChanged;
         }
 
         #endregion
@@ -77,8 +77,8 @@
         /// </value>
         public string DefaultDrive
         {
-            get => (string) this.GetValue(DefaultDriveProperty);
-            set => this.SetValue(DefaultDriveProperty, value);
+            get => (string) GetValue(DefaultDriveProperty);
+            set => SetValue(DefaultDriveProperty, value);
         }
 
 
@@ -92,10 +92,10 @@
         {
             get
             {
-                var regexp = new Regex(this.GetValue(PatternFileProperty).ToString());
+                var regexp = new Regex(GetValue(PatternFileProperty).ToString());
                 return regexp;
             }
-            set => this.SetValue(PatternFileProperty, value);
+            set => SetValue(PatternFileProperty, value);
         }
 
         /// <summary>
@@ -106,8 +106,8 @@
         /// </value>
         public string SelectedFile
         {
-            get => (string) this.GetValue(SelectedFileProperty);
-            set => this.SetValue(SelectedFileProperty, value);
+            get => (string) GetValue(SelectedFileProperty);
+            set => SetValue(SelectedFileProperty, value);
         }
 
         #endregion
@@ -126,9 +126,9 @@
                 Header = directoryInfo.Name,
                 Tag = directoryInfo.Name,
                 FontWeight = FontWeights.Normal,
-                Items = {this.dummyNode}
+                Items = {dummyNode}
             };
-            directoryNode.Expanded += this.FolderExpanded;
+            directoryNode.Expanded += FolderExpanded;
 
             return directoryNode;
         }
@@ -141,7 +141,7 @@
         private void FolderExpanded(object sender, RoutedEventArgs e)
         {
             var item = (TreeViewItem) sender;
-            if (item.Items.Count == 1 && item.Items[0] == this.dummyNode)
+            if (item.Items.Count == 1 && item.Items[0] == dummyNode)
             {
                 item.Items.Clear();
                 try
@@ -157,9 +157,9 @@
                         };
                         if (Directory.GetDirectories(directoryPath).Length > 0)
                         {
-                            subitem.Items.Add(this.dummyNode);
+                            subitem.Items.Add(dummyNode);
                         }
-                        subitem.Expanded += this.FolderExpanded;
+                        subitem.Expanded += FolderExpanded;
                         item.Items.Add(subitem);
                     }
                 }
@@ -179,7 +179,7 @@
         {
             treeView.Items.Clear();
             var rootDirectoryInfo = new DirectoryInfo(path);
-            treeView.Items.Add(this.CreateDirectoryNode(rootDirectoryInfo));
+            treeView.Items.Add(CreateDirectoryNode(rootDirectoryInfo));
         }
 
         /// <summary>
@@ -195,9 +195,9 @@
             var fullPath = ((sender as TreeView)?.SelectedItem as TreeViewItem)?.Tag.ToString();
             if (!string.IsNullOrEmpty(fullPath))
             {
-                var listFiles = Directory.GetFiles(fullPath).Where(path => this.PatternFile.IsMatch(path))
-                                         .Select(path => new FileInfo(path).Name).ToList();
-                this.ListFichier.ItemsSource = listFiles;
+                var listFiles = Directory.GetFiles(fullPath).Where(path => PatternFile.IsMatch(path))
+                                         .Select(path => new FileInfo(path)).ToList();
+                ListFichier.ItemsSource = listFiles;
             }
         }
 

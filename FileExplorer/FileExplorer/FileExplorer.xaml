@@ -34,7 +34,16 @@
             <GridSplitter ResizeDirection="Rows" Grid.Column="0" Grid.Row="1" Width="Auto"
                               Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" />
             <!-- fichier log -->
-            <ListBox Grid.Row="2" Name="ListFichier"/>
+            <ListBox Grid.Row="2" Name="ListFichier">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Name="img"  Width="20" Height="20" Stretch="Fill" Source="{Binding Converter={x:Static local:FileToImageIconConverter.Instance}}"/>
+                            <ContentControl Content="{Binding}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
             <!-- barre de statut -->
             <StatusBar  Grid.Row="3" >
                 <StatusBarItem>

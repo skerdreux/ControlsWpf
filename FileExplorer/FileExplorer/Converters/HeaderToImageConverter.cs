@@ -1,15 +1,13 @@
-﻿namespace FileExplorer.Converters
+﻿using FileExplorer.Helpers;
+
+namespace FileExplorer.Converters
 {
     #region Usings
 
     using System;
-    using System.Drawing;
-    using System.Drawing.Imaging;
     using System.Globalization;
-    using System.IO;
     using System.Windows.Data;
-    using System.Windows.Media.Imaging;
-    using global::FileExplorer.Properties;
+    using Properties;
 
     #endregion
 
@@ -39,9 +37,9 @@
         {
             if (value != null && ((string) value).Contains(@"\"))
             {
-                return ToBitmapImage(ResourceImage.drive);
+                return BitmapHelpers.ToBitmapImage(ResourceImage.drive);
             }
-            return ToBitmapImage(ResourceImage.folder);
+            return BitmapHelpers.ToBitmapImage(ResourceImage.folder);
         }
 
         /// <summary>
@@ -60,32 +58,6 @@
             throw new NotSupportedException("Cannot convert back");
 
         #endregion
-
-        #region Méthodes privées
-
-        /// <summary>
-        ///     To the bitmap image.
-        /// </summary>
-        /// <param name="bitmap">The bitmap.</param>
-        /// <returns></returns>
-        private static BitmapImage ToBitmapImage(Bitmap bitmap)
-        {
-            using (var memory = new MemoryStream())
-            {
-                bitmap.Save(memory, ImageFormat.Png);
-                memory.Position = 0;
-
-                var bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                bitmapImage.Freeze();
-
-                return bitmapImage;
-            }
-        }
-
-        #endregion
+        
     }
 }

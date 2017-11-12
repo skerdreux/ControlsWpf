@@ -47,11 +47,14 @@
             <!-- barre de statut -->
             <StatusBar  Grid.Row="3" >
                 <StatusBarItem>
-                    <TextBlock />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding ElementName=ListFichier, Path=Items.Count}"/>
+                        <TextBlock Text=" fichier(s)"></TextBlock>
+                    </StackPanel>
                 </StatusBarItem>
             </StatusBar>
         </Grid>
-        
+
 
     </DockPanel>
 </UserControl>

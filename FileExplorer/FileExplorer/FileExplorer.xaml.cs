@@ -178,8 +178,16 @@
         private void ListDirectory(TreeView treeView, string path)
         {
             treeView.Items.Clear();
-            var rootDirectoryInfo = new DirectoryInfo(path);
-            treeView.Items.Add(CreateDirectoryNode(rootDirectoryInfo));
+
+            var listDrives = Directory.GetLogicalDrives();
+            foreach (var drive in listDrives)
+            {
+                var rootDirectoryInfo = new DirectoryInfo(drive);
+                var myItem = CreateDirectoryNode(rootDirectoryInfo);
+                // on expand le disque par défaut
+                myItem.IsExpanded = string.Compare(myItem.Tag.ToString(), path, StringComparison.CurrentCultureIgnoreCase) == 0;
+                treeView.Items.Add(myItem);
+            }
         }
 
         /// <summary>

@@ -43,24 +43,20 @@ namespace FileExplorer.Converters
             {
                 return ListeExtensionIcone[fileInfo.Extension];
             }
-            else
+            using (var sysicon = Icon.ExtractAssociatedIcon(fileInfo.FullName))
             {
-                using (var sysicon = Icon.ExtractAssociatedIcon(fileInfo.FullName))
+                if (sysicon != null)
                 {
-                    if (sysicon != null)
-                    {
-                        var icon = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
-                            sysicon.Handle,
-                            Int32Rect.Empty,
-                            BitmapSizeOptions.FromEmptyOptions());
-                        return icon;
-                    }
+                    var icon = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+                        sysicon.Handle,
+                        Int32Rect.Empty,
+                        BitmapSizeOptions.FromEmptyOptions());
+                    return icon;
                 }
-
-                // icon par défaut
-                return BitmapHelpers.ToBitmapImage(ResourceImage.file);
-
             }
+
+            // icon par défaut
+            return BitmapHelpers.ToBitmapImage(ResourceImage.file);
         }
 
         /// <summary>

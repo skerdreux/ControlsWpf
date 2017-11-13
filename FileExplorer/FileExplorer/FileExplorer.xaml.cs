@@ -5,7 +5,6 @@
     using System;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Text.RegularExpressions;
     using System.Windows;
     using System.Windows.Controls;
@@ -19,24 +18,48 @@
     {
         #region Champs et constantes statiques
 
+        /// <summary>
+        /// The pattern file property
+        /// </summary>
         public static readonly DependencyProperty PatternFileProperty =
             DependencyProperty.Register("PatternFile", typeof(string),
-                                        typeof(FileExplorer), new PropertyMetadata(""));
-
+                                        typeof(FileExplorer), new PropertyMetadata(string.Empty));
+                                        
         /// <summary>
         ///     The selected file property
         /// </summary>
         public static readonly DependencyProperty SelectedFileProperty =
             DependencyProperty.Register("SelectedFile", typeof(string),
-                                        typeof(FileExplorer), new PropertyMetadata(""));
+                                        typeof(FileExplorer), new PropertyMetadata(string.Empty));
 
         /// <summary>
         ///     The selected file property
         /// </summary>
         public static readonly DependencyProperty DefaultDriveProperty =
             DependencyProperty.Register("DefaultDrive", typeof(string),
-                                        typeof(FileExplorer), new PropertyMetadata(""));
+                                        typeof(FileExplorer), new PropertyMetadata(DefaultDrivePropertyChangedHandler));
 
+        /// <summary>
+        /// Defaults the drive property changed handler.
+        /// </summary>
+        /// <param name="dependencyObject">The dependency object.</param>
+        /// <param name="dependencyPropertyChangedEventArgs">The <see cref="DependencyPropertyChangedEventArgs"/> instance containing the event data.</param>
+        private static void DefaultDrivePropertyChangedHandler(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
+        {
+            dependencyObject.SetValue(DefaultDriveProperty, dependencyPropertyChangedEventArgs.NewValue);
+            var owner = ((FileExplorer) dependencyObject);
+            foreach (TreeViewItem treeViewItem in owner.TreeViewFolder.Items)
+            {
+                if (treeViewItem != null)
+                {
+                    treeViewItem.IsExpanded = string.Compare(treeViewItem.Tag.ToString(),
+                                                             dependencyPropertyChangedEventArgs.NewValue.ToString(),
+                                                             StringComparison.InvariantCultureIgnoreCase) == 0;
+                }
+            }
+        }
+        
+        
         #endregion
 
         #region Champs
@@ -52,17 +75,9 @@
         /// </summary>
         public FileExplorer()
         {
-            InitializeComponent();
-
-            // on sélectionne le disque par défaut si non saisie
-            if (string.IsNullOrEmpty(DefaultDrive))
-            {
-                DefaultDrive = Path.GetPathRoot(Assembly.GetExecutingAssembly().Location);
-            }
-
-            ListDirectory(TreeViewFolder, DefaultDrive);
-
-            TreeViewFolder.SelectedItemChanged += TreeViewFolderOnSelectedItemChanged;
+            this.InitializeComponent();
+            this.ListDirectory();
+            this.TreeViewFolder.SelectedItemChanged += this.TreeViewFolderOnSelectedItemChanged;
         }
 
         #endregion
@@ -77,8 +92,8 @@
         /// </value>
         public string DefaultDrive
         {
-            get => (string) GetValue(DefaultDriveProperty);
-            set => SetValue(DefaultDriveProperty, value);
+            get => (string) this.GetValue(DefaultDriveProperty);
+            set => this.SetValue(DefaultDriveProperty, value);
         }
 
 
@@ -88,14 +103,10 @@
         /// <value>
         ///     The pattern file.
         /// </value>
-        public Regex PatternFile
+        public string PatternFile
         {
-            get
-            {
-                var regexp = new Regex(GetValue(PatternFileProperty).ToString());
-                return regexp;
-            }
-            set => SetValue(PatternFileProperty, value);
+            get => (string)this.GetValue(PatternFileProperty);
+            set => this.SetValue(PatternFileProperty, value);
         }
 
         /// <summary>
@@ -106,8 +117,8 @@
         /// </value>
         public string SelectedFile
         {
-            get => (string) GetValue(SelectedFileProperty);
-            set => SetValue(SelectedFileProperty, value);
+            get => (string) this.GetValue(SelectedFileProperty);
+            set => this.SetValue(SelectedFileProperty, value);
         }
 
         #endregion
@@ -126,22 +137,22 @@
                 Header = directoryInfo.Name,
                 Tag = directoryInfo.Name,
                 FontWeight = FontWeights.Normal,
-                Items = {dummyNode}
+                Items = {this.dummyNode}
             };
-            directoryNode.Expanded += FolderExpanded;
+            directoryNode.Expanded += this.FolderExpanded;
 
             return directoryNode;
         }
 
         /// <summary>
-        /// Folders the expanded.
+        ///     Folders the expanded.
         /// </summary>
         /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
+        /// <param name="e">The <see cref="RoutedEventArgs" /> instance containing the event data.</param>
         private void FolderExpanded(object sender, RoutedEventArgs e)
         {
             var item = (TreeViewItem) sender;
-            if (item.Items.Count == 1 && item.Items[0] == dummyNode)
+            if (item.Items.Count == 1 && item.Items[0] == this.dummyNode)
             {
                 item.Items.Clear();
                 try
@@ -157,9 +168,9 @@
                         };
                         if (Directory.GetDirectories(directoryPath).Length > 0)
                         {
-                            subitem.Items.Add(dummyNode);
+                            subitem.Items.Add(this.dummyNode);
                         }
-                        subitem.Expanded += FolderExpanded;
+                        subitem.Expanded += this.FolderExpanded;
                         item.Items.Add(subitem);
                     }
                 }
@@ -173,20 +184,16 @@
         /// <summary>
         ///     Lists the directory.
         /// </summary>
-        /// <param name="treeView">The tree view.</param>
-        /// <param name="path">The path.</param>
-        private void ListDirectory(TreeView treeView, string path)
+        private void ListDirectory()
         {
-            treeView.Items.Clear();
+            this.TreeViewFolder.Items.Clear();
 
             var listDrives = Directory.GetLogicalDrives();
             foreach (var drive in listDrives)
             {
                 var rootDirectoryInfo = new DirectoryInfo(drive);
-                var myItem = CreateDirectoryNode(rootDirectoryInfo);
-                // on expand le disque par défaut
-                myItem.IsExpanded = string.Compare(myItem.Tag.ToString(), path, StringComparison.CurrentCultureIgnoreCase) == 0;
-                treeView.Items.Add(myItem);
+                var myItem = this.CreateDirectoryNode(rootDirectoryInfo);
+                this.TreeViewFolder.Items.Add(myItem);
             }
         }
 
@@ -203,12 +210,19 @@
             var fullPath = ((sender as TreeView)?.SelectedItem as TreeViewItem)?.Tag.ToString();
             if (!string.IsNullOrEmpty(fullPath))
             {
-                var listFiles = Directory.GetFiles(fullPath).Where(path => PatternFile.IsMatch(path))
+                // filtrage en fonction de la regex
+                var regex = new Regex(this.PatternFile);
+                var listFiles = Directory.GetFiles(fullPath).Where(path => regex.IsMatch(path))
                                          .Select(path => new FileInfo(path)).ToList();
-                ListFichier.ItemsSource = listFiles;
+                this.ListFichier.ItemsSource = listFiles;
             }
         }
 
         #endregion
+
+        private void ListFichier_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.SelectedFile = ((sender as ListBox)?.SelectedItem as FileInfo)?.FullName;
+        }
     }
 }

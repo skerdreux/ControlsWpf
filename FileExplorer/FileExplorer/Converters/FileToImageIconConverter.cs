@@ -37,11 +37,13 @@ namespace FileExplorer.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (!(value is FileInfo fileInfo))
-                return null;
-
-            if (ListeExtensionIcone.ContainsKey(fileInfo.Extension))
             {
-                return ListeExtensionIcone[fileInfo.Extension];
+                return null;
+            }
+
+            if (this.ListeExtensionIcone.ContainsKey(fileInfo.Extension))
+            {
+                return this.ListeExtensionIcone[fileInfo.Extension];
             }
             using (var sysicon = Icon.ExtractAssociatedIcon(fileInfo.FullName))
             {

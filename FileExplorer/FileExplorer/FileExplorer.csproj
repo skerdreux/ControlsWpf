@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Converters\FileToImageIconConverter.cs" />
     <Compile Include="Converters\HeaderToImageConverter.cs" />
+    <Compile Include="Converters\StringToVisibilityConverter.cs" />
     <Compile Include="FileExplorer.xaml.cs">
       <DependentUpon>FileExplorer.xaml</DependentUpon>
     </Compile>

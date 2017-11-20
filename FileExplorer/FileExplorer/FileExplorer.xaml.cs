@@ -19,12 +19,12 @@
         #region Champs et constantes statiques
 
         /// <summary>
-        /// The pattern file property
+        ///     The pattern file property
         /// </summary>
         public static readonly DependencyProperty PatternFileProperty =
             DependencyProperty.Register("PatternFile", typeof(string),
-                                        typeof(FileExplorer), new PropertyMetadata(string.Empty));
-                                        
+                                        typeof(FileExplorer), new PropertyMetadata(PatternFilePropertyChangeHandler));
+
         /// <summary>
         ///     The selected file property
         /// </summary>
@@ -39,27 +39,6 @@
             DependencyProperty.Register("DefaultDrive", typeof(string),
                                         typeof(FileExplorer), new PropertyMetadata(DefaultDrivePropertyChangedHandler));
 
-        /// <summary>
-        /// Defaults the drive property changed handler.
-        /// </summary>
-        /// <param name="dependencyObject">The dependency object.</param>
-        /// <param name="dependencyPropertyChangedEventArgs">The <see cref="DependencyPropertyChangedEventArgs"/> instance containing the event data.</param>
-        private static void DefaultDrivePropertyChangedHandler(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs dependencyPropertyChangedEventArgs)
-        {
-            dependencyObject.SetValue(DefaultDriveProperty, dependencyPropertyChangedEventArgs.NewValue);
-            var owner = ((FileExplorer) dependencyObject);
-            foreach (TreeViewItem treeViewItem in owner.TreeViewFolder.Items)
-            {
-                if (treeViewItem != null)
-                {
-                    treeViewItem.IsExpanded = string.Compare(treeViewItem.Tag.ToString(),
-                                                             dependencyPropertyChangedEventArgs.NewValue.ToString(),
-                                                             StringComparison.InvariantCultureIgnoreCase) == 0;
-                }
-            }
-        }
-        
-        
         #endregion
 
         #region Champs
@@ -105,7 +84,7 @@
         /// </value>
         public string PatternFile
         {
-            get => (string)this.GetValue(PatternFileProperty);
+            get => (string) this.GetValue(PatternFileProperty);
             set => this.SetValue(PatternFileProperty, value);
         }
 
@@ -126,16 +105,67 @@
         #region Méthodes privées
 
         /// <summary>
+        ///     Defaults the drive property changed handler.
+        /// </summary>
+        /// <param name="dependencyObject">The dependency object.</param>
+        /// <param name="dependencyPropertyChangedEventArgs">
+        ///     The <see cref="DependencyPropertyChangedEventArgs" /> instance
+        ///     containing the event data.
+        /// </param>
+        private static void DefaultDrivePropertyChangedHandler(DependencyObject dependencyObject,
+                                                               DependencyPropertyChangedEventArgs
+                                                                   dependencyPropertyChangedEventArgs)
+        {
+            dependencyObject.SetValue(DefaultDriveProperty, dependencyPropertyChangedEventArgs.NewValue);
+            var owner = (FileExplorer) dependencyObject;
+            foreach (TreeViewItem treeViewItem in owner.TreeViewFolder.Items)
+            {
+                if (treeViewItem != null)
+                {
+                    treeViewItem.IsExpanded = string.Compare(treeViewItem.Tag.ToString(),
+                                                             dependencyPropertyChangedEventArgs.NewValue.ToString(),
+                                                             StringComparison.InvariantCultureIgnoreCase) == 0;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Patterns the file property change handler.
+        /// </summary>
+        /// <param name="dependencyObject">The dependency object.</param>
+        /// <param name="dependencyPropertyChangedEventArgs">
+        ///     The <see cref="DependencyPropertyChangedEventArgs" /> instance
+        ///     containing the event data.
+        /// </param>
+        private static void PatternFilePropertyChangeHandler(DependencyObject dependencyObject,
+                                                             DependencyPropertyChangedEventArgs
+                                                                 dependencyPropertyChangedEventArgs)
+        {
+            dependencyObject.SetValue(PatternFileProperty, dependencyPropertyChangedEventArgs.NewValue);
+            var owner = (FileExplorer) dependencyObject;
+            var regex = new Regex(dependencyPropertyChangedEventArgs.NewValue.ToString());
+            // récupération du répertoire courant
+            var currentFolder = (owner.TreeViewFolder.SelectedItem as TreeViewItem)?.Tag.ToString();
+            // update de la liste des fichiers
+            if (!string.IsNullOrEmpty(currentFolder))
+            {
+                var listFiles = Directory.GetFiles(currentFolder).Where(path => regex.IsMatch(path))
+                                         .Select(path => new FileInfo(path)).ToList();
+                owner.ListFichier.ItemsSource = listFiles;
+            }
+        }
+
+        /// <summary>
         ///     Creates the directory node.
         /// </summary>
-        /// <param name="directoryInfo">The directory information.</param>
+        /// <param name="fileSystemInfo">The directory information.</param>
         /// <returns></returns>
-        private TreeViewItem CreateDirectoryNode(DirectoryInfo directoryInfo)
+        private TreeViewItem CreateDirectoryNode(FileSystemInfo fileSystemInfo)
         {
             var directoryNode = new TreeViewItem
             {
-                Header = directoryInfo.Name,
-                Tag = directoryInfo.Name,
+                Header = fileSystemInfo.Name,
+                Tag = fileSystemInfo.Name,
                 FontWeight = FontWeights.Normal,
                 Items = {this.dummyNode}
             };
@@ -198,6 +228,19 @@
         }
 
         /// <summary>
+        ///     Handles the OnSelectionChanged event of the ListFichier control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">
+        ///     The <see cref="System.Windows.Controls.SelectionChangedEventArgs" /> instance containing the event
+        ///     data.
+        /// </param>
+        private void ListFichier_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.SelectedFile = ((sender as ListBox)?.SelectedItem as FileInfo)?.FullName;
+        }
+
+        /// <summary>
         ///     TreeViews the folder on selected item changed.
         /// </summary>
         /// <param name="sender">The sender.</param>
@@ -219,10 +262,5 @@
         }
 
         #endregion
-
-        private void ListFichier_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            this.SelectedFile = ((sender as ListBox)?.SelectedItem as FileInfo)?.FullName;
-        }
     }
 }

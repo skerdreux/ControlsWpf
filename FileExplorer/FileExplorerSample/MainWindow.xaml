@@ -7,6 +7,18 @@
         mc:Ignorable="d"
         Title="{Binding SelectedFile, ElementName=Explorer}" Height="350" Width="525">
     <Grid>
-        <fileExplorer:FileExplorer DefaultDrive="c:\" PatternFile="(?:\.txt)$" Name="Explorer"></fileExplorer:FileExplorer>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <ComboBox Name="ComboBoxPatternFile">
+                <ComboBoxItem Tag="(?:\.txt)$">txt</ComboBoxItem>
+                <ComboBoxItem Tag="(?:\.log)$">log</ComboBoxItem>
+                <ComboBoxItem Tag="(?:\.cs)$">cs</ComboBoxItem>
+                <ComboBoxItem Tag="" IsSelected="True">All</ComboBoxItem>
+            </ComboBox>
+        </StackPanel>
+        <fileExplorer:FileExplorer Grid.Row="1" DefaultDrive="c:\" PatternFile="{Binding ElementName=ComboBoxPatternFile, Path=SelectedItem.Tag, Mode=TwoWay}" Name="Explorer"></fileExplorer:FileExplorer>
     </Grid>
 </Window>
